@@ -2,8 +2,36 @@
 #include <iostream>
 #include<cstdint>
 #include<vector>
+//#include<algorithm>
 
 #include "Bitmap.h"
+/*
+*/
+uint8_t max(std::vector< std::vector<uint8_t> >& img,
+				int median_w, int median_h, int x, size_t w, int y, size_t h)
+{
+	auto xdiff = (int)floor(median_w / 2.0);
+	auto ydiff = (int)floor(median_h / 2.0);
+
+	uint8_t val = 0;
+	for (int yy = -ydiff; yy < ydiff; yy++)
+	{
+		for (int xx = -xdiff; xx < xdiff; xx++)
+		{
+			auto xpos = x + xx;
+			if (xpos < 0 || xpos >= w)
+				continue;
+
+			auto ypos = y + yy;
+			if (ypos < 0 || ypos >= h)
+				continue;
+			
+			val = std::max(val, img[ypos][xpos]);
+		}
+	}
+
+	return val;
+}
 /*
  * uint8_t conv(std::vector< std::vector<uint8_t> >& img,
 	const std::vector< std::vector<int> >& kernel,
@@ -18,7 +46,8 @@ uint8_t conv(std::vector< std::vector<uint8_t> >& img,
 	auto xdiff = (int)floor(w_filter / 2.0);
 	auto ydiff = (int)floor(h_filter / 2.0);
 
-	int val = 0;
+	double val = 0;
+	double cnt = 0;
 	for (int yy = -ydiff; yy < ydiff; yy++)
 	{
 		for (int xx = -xdiff; xx < xdiff; xx++)
@@ -31,16 +60,17 @@ uint8_t conv(std::vector< std::vector<uint8_t> >& img,
 			if (ypos < 0 || ypos >= h)
 				continue;
 
-			val += img[ypos][xpos] * kernel[xdiff - xx][ydiff - yy];			
+			val += img[ypos][xpos] * kernel[xdiff - xx][ydiff - yy];
+			cnt++;
 		}
 	}
 	
-	val /= (double)(h_filter * w_filter);
+	val /= cnt;
 
 	if (val < 0) val = 0;
 	if (val > 255) val = 255;
 
-	return val;
+	return (uint8_t) val;
 }
 /*
 * void shrink(std::vector< std::vector<uint8_t> >& img, int w, int h)
@@ -73,8 +103,12 @@ void shrink(std::vector< std::vector<uint8_t> >& img, int w, int h)
 	{
 		for (int x = 0; x < w; x++)
 		{
-			//imgNew[y][x] = img[y * stride_y][x * stride_x];
-			imgNew[y][x] = conv(img, kernel, x * stride_x, w_old, y * stride_y, h_old);
+			imgNew[y][x] = img[y * stride_y][x * stride_x];
+			//imgNew[y][x] = conv(img, kernel, x * stride_x, w_old, y * stride_y, h_old);
+			
+			//auto median_h = 3;
+			//auto median_w = 3;			
+			//imgNew[y][x] = max(img, median_h, median_w, x * stride_x, w_old, y * stride_y, h_old);
 		}
 	}
 
